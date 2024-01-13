@@ -1,9 +1,12 @@
 import logging
 from pathlib import Path
+from time import sleep
 
 import numpy as np
 import pyaudio
 from openwakeword import Model
+
+from home_gpt.record import record_audio
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +29,15 @@ wake_word_models = Model(
 )
 
 while True:
+    logger.info("Listening for wake word")
     audio_stream = np.frombuffer(microphone.read(CHUNK_SIZE), dtype=np.int16)
     wake_word_models.predict(audio_stream)
 
     for prediction_buffer in wake_word_models.prediction_buffer.values():
         if prediction_buffer[-1] > THRESHOLD:
             logger.info("Wake word detected")
+            record_audio()
+
+            logger.info("Recording finished")
+            wake_word_models.reset()
+            sleep(1)
