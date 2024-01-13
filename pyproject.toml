@@ -12,6 +12,10 @@ pyaudio = "^0.2.14"
 speechrecognition = "^3.10.1"
 
 
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.1.13"
+pre-commit = "^3.6.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
