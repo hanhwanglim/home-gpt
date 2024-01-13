@@ -6,10 +6,15 @@ authors = ["Han Hwang Lim <hanhwanglim@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.9,<3.12" # onnx does not support python 3.12 yet
 openwakeword = "^0.5.1"
 pyaudio = "^0.2.14"
 speechrecognition = "^3.10.1"
+faster-whisper = "^0.10.0"
+fastapi = "^0.109.0"
+uvicorn = "^0.25.0"
+aiofiles = "^23.2.1"
+python-multipart = "^0.0.6"
 
 
 [tool.poetry.group.dev.dependencies]
