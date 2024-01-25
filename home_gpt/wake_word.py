@@ -2,6 +2,7 @@ import logging
 import tempfile
 from pathlib import Path
 from time import sleep
+from typing import NoReturn
 
 import numpy as np
 import pyaudio
@@ -33,15 +34,18 @@ wake_word_models = Model(
     inference_framework=WAKE_WORD_MODEL_PATH.suffix.lstrip("."),
 )
 
-while True:
-    logger.info("Listening for wake word")
-    audio_stream = np.frombuffer(microphone.read(CHUNK_SIZE), dtype=np.int16)
-    wake_word_models.predict(audio_stream)
 
-    for prediction_buffer in wake_word_models.prediction_buffer.values():
-        if prediction_buffer[-1] > THRESHOLD:
+def listen() -> NoReturn:
+    while True:
+        logger.info("Listening for wake word")
+        audio_stream = np.frombuffer(microphone.read(CHUNK_SIZE), dtype=np.int16)
+        wake_word_models.predict(audio_stream)
+
+        for prediction_buffer in wake_word_models.prediction_buffer.values():
+            if prediction_buffer[-1] < THRESHOLD:
+                continue
+
             logger.info("Wake word detected")
-
             audio_data = record_audio()
             logger.info("Recording finished")
 
@@ -60,3 +64,7 @@ while True:
 
             wake_word_models.reset()
             sleep(1)
+
+
+if __name__ == "__main__":
+    listen()
