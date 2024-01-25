@@ -1,12 +1,17 @@
 import logging
+import tempfile
 from pathlib import Path
 from time import sleep
 
 import numpy as np
 import pyaudio
+import requests
+from gtts import gTTS
 from openwakeword import Model
+from playsound import playsound
 
 from home_gpt.record import record_audio
+from home_gpt.whisper import Transcription
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +41,22 @@ while True:
     for prediction_buffer in wake_word_models.prediction_buffer.values():
         if prediction_buffer[-1] > THRESHOLD:
             logger.info("Wake word detected")
-            record_audio()
 
+            audio_data = record_audio()
             logger.info("Recording finished")
+
+            response = requests.post(
+                "http://localhost:5000/upload",
+                files={"audio_file": audio_data.get_wav_data()},
+            )
+            transcription = Transcription(**response.json())
+            text = "".join([segment.text for segment in transcription.segments])
+            logger.info(text)
+
+            with tempfile.NamedTemporaryFile() as f:
+                tts = gTTS(text=text, lang="en")
+                tts.save(f.name)
+                playsound(f.name)
+
             wake_word_models.reset()
             sleep(1)
