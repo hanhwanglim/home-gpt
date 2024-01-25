@@ -1,11 +1,12 @@
 import logging
 
 import speech_recognition as sr
+from speech_recognition import AudioData
 
 logger = logging.getLogger(__name__)
 
 
-def record_audio():
+def record_audio() -> AudioData:
     recognizer = sr.Recognizer()
 
     with sr.Microphone() as source:
@@ -15,6 +16,4 @@ def record_audio():
         logger.info("Microphone is active.")
         audio_data = recognizer.listen(source)
 
-    with open("recording.wav", "wb") as f:
-        f.write(audio_data.get_wav_data())
-        logger.info("Saving recording clip.")
+    return audio_data
