@@ -2,10 +2,12 @@ import tempfile
 from typing import Any
 
 from fastapi import FastAPI, UploadFile
+from openai import OpenAI
 
 from home_gpt.whisper import transcribe
 
 app = FastAPI()
+client = OpenAI()
 
 
 @app.post("/upload/")
@@ -17,7 +19,29 @@ async def upload(audio_file: UploadFile) -> dict[str, Any]:
     with tempfile.NamedTemporaryFile() as temp_file:
         temp_file.write(await audio_file.read())
         transcription = await transcribe(temp_file.name)
-    return transcription.model_dump()
+
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a helpful home assistant like Siri. Please answer all your home owner's questions. ",
+            },
+            {
+                "role": "user",
+                "content": " ".join(
+                    [segment.text for segment in transcription.segments]
+                ),
+            },
+        ],
+        temperature=1,
+        max_tokens=1024,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0,
+    )
+
+    return response.choices[0].message
 
 
 if __name__ == "__main__":
